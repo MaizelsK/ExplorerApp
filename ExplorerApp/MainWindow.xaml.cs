@@ -20,16 +20,21 @@ namespace ExplorerApp
 {
     public partial class MainWindow : Window
     {
-        private ObservableCollection<File> files;
+        private List<File> newFiles;
 
         public MainWindow()
         {
             InitializeComponent();
-            files = new ObservableCollection<File>();
-            Explorer.ItemsSource = files;
 
-            Thread thread = new Thread(new ThreadStart(GetFileList));
-            thread.Start();
+            //files = new ObservableCollection<File>();
+            //Explorer.ItemsSource = files;
+
+            newFiles = new List<File>();
+
+            Explorer.ItemsSource = newFiles;
+            /*Thread thread = new Thread(new ThreadStart(GetFileList));
+            thread.Start();*/
+            GetFileList();
             //GetFileList2();
         }
 
@@ -39,8 +44,6 @@ namespace ExplorerApp
 
             IEnumerable<string> filePaths = Directory.EnumerateFiles(appDirectory);
             IEnumerable<string> catalogPaths = Directory.EnumerateDirectories(appDirectory);
-
-            ObservableCollection<File> newFiles = new ObservableCollection<File>();
 
             Parallel.ForEach(filePaths, path =>
             {
@@ -56,6 +59,12 @@ namespace ExplorerApp
                 };
 
                 newFiles.Add(newFile);
+
+                Dispatcher.Invoke(() =>
+                {
+                    Explorer.ItemsSource = null;
+                    Explorer.ItemsSource = newFiles;
+                });
             });
 
             Parallel.ForEach(catalogPaths, path =>
@@ -72,11 +81,12 @@ namespace ExplorerApp
                 };
 
                 newFiles.Add(newFile);
-            });
 
-            Dispatcher.Invoke(() =>
-            {
-                files = newFiles;
+                Dispatcher.Invoke(() =>
+                {
+                    Explorer.ItemsSource = null;
+                    Explorer.ItemsSource = newFiles;
+                });
             });
         }
 
